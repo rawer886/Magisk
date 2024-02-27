@@ -272,6 +272,7 @@ static int delete_prop(const char *name, PropFlags flags) {
         if (persist_delete_prop(name))
             ret = 0;
     }
+    LOGD("resetprop: delete prop [%s] %d\n", name, ret);
     return ret;
 }
 

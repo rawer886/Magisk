@@ -26,14 +26,16 @@ static void set_script_env() {
     char new_path[4096];
     ssprintf(new_path, sizeof(new_path), "%s:%s", getenv("PATH"), get_magisk_tmp());
     setenv("PATH", new_path, 1);
+    // Set ZYGISK_ENABLED to 1 if zygisk is enabled
+    //todo 在哪里重置的 ZYGISK_ENABLED ？为什么在命令行不能获取到 ZYGISK_ENABLED 的值？
     if (zygisk_enabled)
         setenv("ZYGISK_ENABLED", "1", 1);
 };
 
 void exec_script(const char *script) {
-    exec_t exec {
-        .pre_exec = set_script_env,
-        .fork = fork_no_orphan
+    exec_t exec{
+            .pre_exec = set_script_env,
+            .fork = fork_no_orphan
     };
     exec_command_sync(exec, BBEXEC_CMD, script);
 }
@@ -99,9 +101,9 @@ void exec_common_scripts(const char *stage) {
                 continue;
             LOGI("%s.d: exec [%s]\n", stage, entry->d_name);
             strcpy(name, entry->d_name);
-            exec_t exec {
-                .pre_exec = set_script_env,
-                .fork = pfs ? xfork : fork_dont_care
+            exec_t exec{
+                    .pre_exec = set_script_env,
+                    .fork = pfs ? xfork : fork_dont_care
             };
             exec_command(exec, BBEXEC_CMD, path);
             PFS_WAIT()
@@ -117,6 +119,13 @@ static bool operator>(const timespec &a, const timespec &b) {
     return a.tv_nsec > b.tv_nsec;
 }
 
+/**
+ * exec_module_scripts 函数的作用是运行模块脚本，模块脚本的路径为 /data/adb/modules/<module_name>/<stage>.sh
+ * 其中 <stage> 为 pre-fs-data, post-fs-data, late_start_service, post-fs-data.sh, service.sh, post-fs-data.sh
+ * 三个中的一个，<module_name> 为模块名，模块名为模块的文件夹名，模块的路径为 /data/adb/modules/<module_name>
+ * 该函数会遍历 modules 中的所有模块，对每个模块，如果该模块的 <stage>.sh 存在，则执行该脚本
+ * 如果 <stage> 为 post-fs-data, 则会设置一个定时器，如果定时器超时，则会杀死该模块的脚本进程
+ */
 void exec_module_scripts(const char *stage, const vector<string_view> &modules) {
     LOGI("* Running module %s scripts\n", stage);
     if (modules.empty())
@@ -140,9 +149,9 @@ void exec_module_scripts(const char *stage, const vector<string_view> &modules) 
         if (access(path, F_OK) == -1)
             continue;
         LOGI("%s: exec [%s.sh]\n", module, stage);
-        exec_t exec {
-            .pre_exec = set_script_env,
-            .fork = pfs ? xfork : fork_dont_care
+        exec_t exec{
+                .pre_exec = set_script_env,
+                .fork = pfs ? xfork : fork_dont_care
         };
         exec_command(exec, BBEXEC_CMD, path);
         PFS_WAIT()
@@ -163,6 +172,7 @@ void install_apk(const char *apk) {
     setfilecon(apk, MAGISK_FILE_CON);
     char cmds[sizeof(install_script) + 4096];
     ssprintf(cmds, sizeof(cmds), install_script, apk, JAVA_PACKAGE_NAME);
+//    LOGI("jiayg install cmds: %s\n", cmds);
     exec_command_async("/system/bin/sh", "-c", cmds);
 }
 
@@ -175,6 +185,7 @@ log -t Magisk "pm_uninstall: $(pm uninstall $PKG 2>&1)"
 void uninstall_pkg(const char *pkg) {
     char cmds[sizeof(uninstall_script) + 256];
     ssprintf(cmds, sizeof(cmds), uninstall_script, pkg);
+//    LOGI("jiayg install cmds: %s\n", cmds);
     exec_command_async("/system/bin/sh", "-c", cmds);
 }
 
@@ -188,6 +199,7 @@ log -t Magisk "pm_clear: $(pm clear --user $USER $PKG 2>&1)"
 void clear_pkg(const char *pkg, int user_id) {
     char cmds[sizeof(clear_script) + 288];
     ssprintf(cmds, sizeof(cmds), clear_script, pkg, user_id);
+    //LOGI("jiayg clear pkg cmds: %s\n", cmds);
     exec_command_async("/system/bin/sh", "-c", cmds);
 }
 
@@ -210,6 +222,7 @@ exit 0'
 
 void install_module(const char *file) {
     if (getuid() != 0)
+        //安装模块需要 root 权限
         abort(stderr, "Run this command with root");
     if (access(DATABIN, F_OK) ||
         access(bbpath(), X_OK) ||

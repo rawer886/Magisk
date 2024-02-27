@@ -22,13 +22,19 @@ constexpr Applet private_applets[] = {
     { "zygisk", zygisk_main },
 };
 
+/**
+ * 创建 su 和 resetprop 两个 applet
+ * 通过 magisk.cpp 来查看
+ */
 int main(int argc, char *argv[]) {
+    //LOGD("jiayg applets main 被调用\n");
     if (argc < 1)
         return 1;
 
     cmdline_logging();
     init_argv0(argc, argv);
 
+    //获取文件的名字
     string_view argv0 = basename(argv[0]);
 
     umask(0);

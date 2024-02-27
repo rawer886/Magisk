@@ -249,6 +249,13 @@ static void set_identity(uid_t uid, const std::vector<uid_t> &groups) {
     }
 }
 
+/**
+ * 获取 root 入口
+ *
+ * @details This function is called when the client connects to the socket.
+ * It will read the request from the client and then call su_daemon_handler
+ * to handle the request.
+ */
 void su_daemon_handler(int client, const sock_cred *cred) {
     LOGD("su: request from uid=[%d], pid=[%d], client=[%d]\n", cred->uid, cred->pid, client);
 

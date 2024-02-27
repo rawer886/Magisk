@@ -62,6 +62,7 @@ public:
     }
 };
 
+//手机启动入口。加载 magisk，然后执行 init
 int main(int argc, char *argv[]) {
     umask(0);
 

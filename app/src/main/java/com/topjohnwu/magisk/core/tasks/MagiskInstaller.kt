@@ -131,12 +131,13 @@ abstract class MagiskInstallImpl protected constructor(
                 val lib32 = info.javaClass.getDeclaredField("secondaryNativeLibraryDir")
                     .get(info) as String?
                 if (lib32 != null) {
+                    //添加 libmagisk32.so 到 libs
                     libs += File(lib32, "libmagisk32.so")
                 }
 
                 for (lib in libs) {
                     val name = lib.name.substring(3, lib.name.length - 3)
-                    Os.symlink(lib.path, "$installDir/$name")
+                    Os.symlink(lib.path, "$installDir/$name")//创建软链接
                 }
             }
 

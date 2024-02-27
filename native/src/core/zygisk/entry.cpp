@@ -186,6 +186,7 @@ static void get_moddir(int client) {
     close(dfd);
 }
 
+//这个函数的作用是在zygote进程中创建一个socket 然后等待zygisk进程连接
 void zygisk_handler(int client, const sock_cred *cred) {
     int code = read_int(client);
     char buf[256];

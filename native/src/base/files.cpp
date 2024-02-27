@@ -209,6 +209,16 @@ mmap_data::~mmap_data() {
         munmap(_buf, _sz);
 }
 
+/**
+ * 1. 如果是 /data/adb/magisk 目录，那么就是 magisk 模块
+ * 2. 如果是 /data/adb/modules 目录，那么就是 magisk 模块
+ * 3. 如果是 /data/magisk 目录，那么就是 magisk 模块
+ * 4. 如果是 /data/unencrypted/magisk 目录，那么就是 magisk 模块
+ * 5. 如果是 /data/media/0/magisk 目录，那么就是 magisk 模块
+ * 6. 如果是 /data/media/0/adb/modules 目录，那么就是 magisk 模块
+ * 7. 如果是 /data/media/0/unencrypted/magisk 目录，那么就是 magisk 模块
+ * 8. 如果是 /data/media/0/Android/data/com.topjohnwu.magisk 目录，那么就是 magisk 模块
+ */
 string resolve_preinit_dir(const char *base_dir) {
     string dir = base_dir;
     if (access((dir + "/unencrypted").data(), F_OK) == 0) {

@@ -62,6 +62,7 @@ static void rescan_apps() {
             close(dfd);
         }
     }
+    LOGD("denylist: rescanning apps end\n");
 }
 
 static void update_pkg_uid(const string &pkg, bool remove) {

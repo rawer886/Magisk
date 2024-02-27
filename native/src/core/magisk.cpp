@@ -46,7 +46,10 @@ Available applets:
     fprintf(stderr, "\n\n");
     exit(1);
 }
-
+/**
+ * 执行 magisk 相关命令入口
+ * printf 输出内容到控制台
+ */
 int magisk_main(int argc, char *argv[]) {
     if (argc < 2)
         usage();

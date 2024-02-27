@@ -196,10 +196,13 @@ public:
             return;
 
         const string dir_name = isa<tmpfs_node>(parent()) ? parent()->worker_path() : parent()->node_path();
+        //当前执行的目录是在 /data/local/tmp
         if (name() == "magisk") {
             for (int i = 0; applet_names[i]; ++i) {
                 string dest = dir_name + "/" + applet_names[i];
                 VLOGD("create", "./magisk", dest.data());
+                //xsymlink:创建软链接,dest是软链接的路径，./magisk是软链接的目标。
+                //dest.data()：/system/bin/xxx。注意:这里的 './magisk' 意思是 /system/bin/./)
                 xsymlink("./magisk", dest.data());
             }
         } else {
@@ -225,6 +228,9 @@ private:
     bool is64bit;
 };
 
+/**
+ * Inject Magisk binaries into /system/bin
+ */
 static void inject_magisk_bins(root_node *system) {
     auto bin = system->get_child<inter_node>("bin");
     if (!bin) {

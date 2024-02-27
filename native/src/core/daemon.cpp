@@ -273,6 +273,7 @@ static void handle_request(pollfd *pfd) {
         }
         break;
     case +RequestCode::REMOVE_MODULES:
+        //不是 root 也不是 shell不能卸载模块
         if (!is_root && cred.uid != AID_SHELL) {
             write_int(client, +RespondCode::ACCESS_DENIED);
             return;
@@ -315,7 +316,18 @@ static void switch_cgroup(const char *cgroup, int pid) {
     close(fd);
 }
 
+/**
+ * 这个函数做了一下几点内容：
+ * 1. 重定向标准输入输出到/dev/null
+ * 2. 设置进程名为magiskd
+ * 3. 设置进程的安全上下文为MAGISK_PROC_CON
+ * 4. 启动日志守护进程
+ * 5. 打印日志
+ * 6. 设置信号屏蔽
+ *
+ */
 static void daemon_entry() {
+    // 设置日志文件路径: /data/adb/magisk.log
     android_logging();
 
     // Block all signals
@@ -451,6 +463,7 @@ const char *get_magisk_tmp() {
 }
 
 int connect_daemon(int req, bool create) {
+    //LOGE("jiayg connect_daemon\n");
     int fd = xsocket(AF_LOCAL, SOCK_STREAM | SOCK_CLOEXEC, 0);
     sockaddr_un addr = {.sun_family = AF_LOCAL};
     const char *tmp = get_magisk_tmp();

@@ -148,14 +148,17 @@ def mkdir_p(path, mode=0o755):
     os.makedirs(path, mode, exist_ok=True)
 
 
+# 执行命令并舍弃 output（会返回是否执行成功）。 STDOUT = null 丢弃执行结果的信息
 def execv(cmd, env=None):
     return subprocess.run(cmd, stdout=STDOUT, env=env)
 
 
+# 使用操作系统的 shell 执行命令并舍弃 output（会返回是否执行成功）。
 def system(cmd):
     return subprocess.run(cmd, shell=True, stdout=STDOUT)
 
 
+# Run command and return output。PIPE: 为子进程创建 pipe; DEVNULL: 等同于 /dev/null，这里用于丢弃错误信息
 def cmd_out(cmd, env=None):
     return (
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env)
@@ -238,16 +241,21 @@ def clean_elf():
     execv(args)
 
 
+# 具体的编译逻辑应该是在 magisk ndk 里面
 def run_ndk_build(flags):
     os.chdir("native")
+    # 'NDK_PROJECT_PATH=. NDK_APPLICATION_MK=src/Application.mk  B_MAGISK=1 B_INIT=1'
     flags = "NDK_PROJECT_PATH=. NDK_APPLICATION_MK=src/Application.mk " + flags
     proc = system(f"{ndk_build} {flags} -j{cpu_count}")
     if proc.returncode != 0:
         error("Build binary failed!")
     os.chdir("..")
+    # ['armeabi-v7a', 'x86', 'arm64-v8a', 'x86_64']
     for arch in archs:
         for tgt in support_targets + ["libinit-ld.so"]:
+            # 'native/libs/armeabi-v7a/magisk'
             source = op.join("native", "libs", arch, tgt)
+            # 'native/out/armeabi-v7a/magisk'
             target = op.join("native", "out", arch, tgt)
             mv(source, target)
 
@@ -423,7 +431,9 @@ def build_binary(args):
         flag += " B_INIT=1"
 
     if flag:
+        # args = Namespace(release=False, verbose=True, config='config.prop', func=<function build_all at 0x1088a1440>, target=['magisk', 'magiskinit', 'magiskboot', 'magiskpolicy', 'busybox'])
         dump_bin_header(args)
+        # ' B_MAGISK=1 B_INIT=1'
         run_ndk_build(flag)
 
     if clean:
@@ -599,9 +609,11 @@ def push_files(args, script):
     if proc.returncode != 0:
         error("adb push failed!")
 
-
+# 给虚拟机安装 magisk
 def setup_avd(args):
+    # args = Namespace(release=False, verbose=True, config='config.prop', func=<function setup_avd at 0x101ea8e00>, skip=False)
     if not args.skip:
+        # 编译 magisk 和 apk
         build_all(args)
 
     header("* Setting up emulator")

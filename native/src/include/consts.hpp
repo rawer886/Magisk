@@ -10,7 +10,7 @@
 #define MAGISKDB        SECURE_DIR "/magisk.db"
 
 // tmpfs paths
-#define INTLROOT      ".magisk"
+#define INTLROOT      ".magisk" // MAGISKTMP 下的目录
 #define MIRRDIR       INTLROOT "/mirror"
 #define PREINITMIRR   INTLROOT "/preinit"
 #define BLOCKDIR      INTLROOT "/block"

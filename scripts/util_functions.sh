@@ -733,7 +733,8 @@ install_module() {
 ##########
 
 # Detect whether in boot mode
-[ -z $BOOTMODE ] && ps | grep zygote | grep -qv grep && BOOTMODE=true
+# grep -qv grep：这次 grep 命令的作用是排除 grep 命令本身的干扰。-q 表示不输出任何显示结果，只显示是否找到匹配的字符串，-v 表示取反操作，即不匹配字符串 "grep"。这可以避免 grep 命令本身被筛选出来。
+[ -z $BOOTMODE ] && ps | grep zygote | grep -qv grep && BOOTMODE=true # [ -z $BOOTMODE ]: if BOOTMODE is not set; grep -qv grep: if zygote is running
 [ -z $BOOTMODE ] && ps -A 2>/dev/null | grep zygote | grep -qv grep && BOOTMODE=true
 [ -z $BOOTMODE ] && BOOTMODE=false
 

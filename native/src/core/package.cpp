@@ -97,6 +97,9 @@ static void install_stub() {
     install_apk(apk);
 }
 
+/**
+ * 签名校验 - manager
+ */
 int get_manager(int user_id, string *pkg, bool install) {
     mutex_guard g(pkg_lock);
 
